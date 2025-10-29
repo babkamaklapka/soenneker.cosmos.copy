@@ -1,0 +1,38 @@
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Soenneker.Cosmos.Copy.Abstract;
+
+/// <summary>
+/// A utility to copy to and from Cosmos databases and containers
+/// </summary>
+public interface ICosmosCopyUtil
+{
+    /// <summary>
+    /// Copies all containers and their items from a source database to a destination database.
+    /// Prior to copying, all existing containers in the destination database are deleted, then recreated to match the source.
+    /// Optionally filters items by createdAt >= cutoffUtc.
+    /// </summary>
+    ValueTask CopyDatabase(
+        string sourceConnectionString,
+        string sourceDatabaseName,
+        string destinationConnectionString,
+        string destinationDatabaseName,
+        DateTime? cutoffUtc = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Copies items from a source container to a destination container. Optionally filters items by createdAt >= cutoffUtc.
+    /// Containers are created in the destination if they do not exist.
+    /// </summary>
+    ValueTask CopyContainer(
+        string sourceConnectionString,
+        string sourceDatabaseName,
+        string sourceContainerName,
+        string destinationConnectionString,
+        string destinationDatabaseName,
+        string destinationContainerName,
+        DateTime? cutoffUtc = null,
+        CancellationToken cancellationToken = default);
+}
