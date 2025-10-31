@@ -79,9 +79,9 @@ public sealed class CosmosCopyUtil : ICosmosCopyUtil
         using var sourceClient = new CosmosClient(sourceConnectionString);
         using var destClient = new CosmosClient(destinationConnectionString);
 
-        Microsoft.Azure.Cosmos.Container sourceContainer = await _containerUtil.Get(sourceContainerName, sourceClient, sourceDatabaseName, cancellationToken).NoSync();
+        Microsoft.Azure.Cosmos.Container sourceContainer = await _containerUtil.Get(sourceDatabaseName, sourceContainerName, sourceClient, cancellationToken).NoSync();
         Microsoft.Azure.Cosmos.Container destContainer =
-            await _containerUtil.Get(destinationContainerName, destClient, destinationDatabaseName, cancellationToken).NoSync();
+            await _containerUtil.Get(destinationDatabaseName, destinationContainerName, destClient , cancellationToken).NoSync();
 
         // Ensure destination container exists (in case CopyContainer is called directly)
         ContainerResponse sourceContainerResponse = await sourceContainer.ReadContainerAsync(cancellationToken: cancellationToken).NoSync();
