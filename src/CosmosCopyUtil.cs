@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
+using Soenneker.Cosmos.Client.Abstract;
 using Soenneker.Cosmos.Copy.Abstract;
 using Soenneker.Cosmos.Container.Abstract;
 using Soenneker.Cosmos.Database.Abstract;
@@ -17,71 +18,71 @@ namespace Soenneker.Cosmos.Copy;
 public sealed class CosmosCopyUtil : ICosmosCopyUtil
 {
     private readonly ILogger<CosmosCopyUtil> _logger;
+    private readonly ICosmosClientUtil _clientUtil;
     private readonly ICosmosDatabaseUtil _databaseUtil;
     private readonly ICosmosContainerUtil _containerUtil;
 
-    public CosmosCopyUtil(ILogger<CosmosCopyUtil> logger, ICosmosDatabaseUtil databaseUtil, ICosmosContainerUtil containerUtil)
+    public CosmosCopyUtil(ILogger<CosmosCopyUtil> logger, ICosmosClientUtil clientUtil, ICosmosDatabaseUtil databaseUtil, ICosmosContainerUtil containerUtil)
     {
         _logger = logger;
+        _clientUtil = clientUtil;
         _databaseUtil = databaseUtil;
         _containerUtil = containerUtil;
     }
 
-    public async ValueTask CopyDatabase(string sourceConnectionString, string sourceDatabaseName, string destinationConnectionString,
-        string destinationDatabaseName, DateTime? cutoffUtc = null, CancellationToken cancellationToken = default)
+    public async ValueTask CopyDatabase(string sourceEndpoint, string sourceAccountKey, string sourceDatabaseName, 
+        string destinationEndpoint, string destinationAccountKey, string destinationDatabaseName, 
+        DateTime? cutoffUtc = null, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Starting CopyDatabase from {sourceDb} to {destDb}. Cutoff: {cutoff}", sourceDatabaseName, destinationDatabaseName, cutoffUtc);
-        using var sourceClient = new CosmosClient(sourceConnectionString);
-        using var destClient = new CosmosClient(destinationConnectionString);
+        CosmosClient sourceClient = await _clientUtil.Get(sourceEndpoint, sourceAccountKey, cancellationToken).NoSync();
+        CosmosClient destClient = await _clientUtil.Get(destinationEndpoint, destinationAccountKey, cancellationToken).NoSync();
 
         Microsoft.Azure.Cosmos.Database sourceDb = await _databaseUtil.Get(sourceDatabaseName, sourceClient, cancellationToken).NoSync();
         Microsoft.Azure.Cosmos.Database destDb = await _databaseUtil.Get(destinationDatabaseName, destClient, cancellationToken).NoSync();
 
         // Delete all containers in destination
         _logger.LogWarning("Deleting all containers in destination database {destDb} ...", destinationDatabaseName);
-        await DeleteAllContainers(destDb, cancellationToken).NoSync();
+        await _containerUtil.DeleteAll(destinationEndpoint, destinationAccountKey, destinationDatabaseName, cancellationToken).NoSync();
         _logger.LogInformation("Finished deleting containers in destination database {destDb}", destinationDatabaseName);
 
         // Enumerate source containers, create in dest, then copy contents
-        FeedIterator<ContainerProperties>? iterator = sourceDb.GetContainerQueryIterator<ContainerProperties>();
+        IReadOnlyList<ContainerProperties> sourceContainers = await _containerUtil.GetAll(sourceEndpoint, sourceAccountKey, sourceDatabaseName, cancellationToken).NoSync();
         var containerIndex = 0;
-        while (iterator.HasMoreResults)
+        foreach (ContainerProperties props in sourceContainers)
         {
-            foreach (ContainerProperties props in await iterator.ReadNextAsync(cancellationToken).NoSync())
+            containerIndex++;
+            _logger.LogInformation("[{index}] Ensuring destination container {container} (PK: {pk}) exists ...", containerIndex, props.Id,
+                props.PartitionKeyPath);
+            // Create destination container with same properties
+            await destDb.CreateContainerIfNotExistsAsync(new ContainerProperties
             {
-                containerIndex++;
-                _logger.LogInformation("[{index}] Ensuring destination container {container} (PK: {pk}) exists ...", containerIndex, props.Id,
-                    props.PartitionKeyPath);
-                // Create destination container with same properties
-                await destDb.CreateContainerIfNotExistsAsync(new ContainerProperties
-                {
-                    Id = props.Id,
-                    PartitionKeyPath = props.PartitionKeyPath,
-                    UniqueKeyPolicy = props.UniqueKeyPolicy
-                }, throughput: null, cancellationToken: cancellationToken).NoSync();
+                Id = props.Id,
+                PartitionKeyPath = props.PartitionKeyPath,
+                UniqueKeyPolicy = props.UniqueKeyPolicy
+            }, throughput: null, cancellationToken: cancellationToken).NoSync();
 
-                _logger.LogInformation("[{index}] Copying container {container} ...", containerIndex, props.Id);
-                await CopyContainer(sourceConnectionString, sourceDatabaseName, props.Id, destinationConnectionString, destinationDatabaseName, props.Id,
-                    cutoffUtc, cancellationToken).NoSync();
-                _logger.LogInformation("[{index}] Finished copying container {container}", containerIndex, props.Id);
-            }
+            _logger.LogInformation("[{index}] Copying container {container} ...", containerIndex, props.Id);
+            await CopyContainer(sourceEndpoint, sourceAccountKey, sourceDatabaseName, props.Id, destinationEndpoint, destinationAccountKey, destinationDatabaseName, props.Id,
+                cutoffUtc, cancellationToken).NoSync();
+            _logger.LogInformation("[{index}] Finished copying container {container}", containerIndex, props.Id);
         }
 
         _logger.LogInformation("Completed CopyDatabase from {sourceDb} to {destDb}", sourceDatabaseName, destinationDatabaseName);
     }
 
-    public async ValueTask CopyContainer(string sourceConnectionString, string sourceDatabaseName, string sourceContainerName,
-        string destinationConnectionString, string destinationDatabaseName, string destinationContainerName, DateTime? cutoffUtc = null,
-        CancellationToken cancellationToken = default)
+    public async ValueTask CopyContainer(string sourceEndpoint, string sourceAccountKey, string sourceDatabaseName, string sourceContainerName,
+        string destinationEndpoint, string destinationAccountKey, string destinationDatabaseName, string destinationContainerName, 
+        DateTime? cutoffUtc = null, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Starting CopyContainer from {sourceDb}/{sourceContainer} to {destDb}/{destContainer}. Cutoff: {cutoff}", sourceDatabaseName,
             sourceContainerName, destinationDatabaseName, destinationContainerName, cutoffUtc);
-        using var sourceClient = new CosmosClient(sourceConnectionString);
-        using var destClient = new CosmosClient(destinationConnectionString);
+        CosmosClient sourceClient = await _clientUtil.Get(sourceEndpoint, sourceAccountKey, cancellationToken).NoSync();
+        CosmosClient destClient = await _clientUtil.Get(destinationEndpoint, destinationAccountKey, cancellationToken).NoSync();
 
-        Microsoft.Azure.Cosmos.Container sourceContainer = await _containerUtil.Get(sourceDatabaseName, sourceContainerName, sourceClient, cancellationToken).NoSync();
+        Microsoft.Azure.Cosmos.Container sourceContainer = await _containerUtil.Get(sourceEndpoint, sourceAccountKey, sourceDatabaseName, sourceContainerName, sourceClient, cancellationToken).NoSync();
         Microsoft.Azure.Cosmos.Container destContainer =
-            await _containerUtil.Get(destinationDatabaseName, destinationContainerName, destClient , cancellationToken).NoSync();
+            await _containerUtil.Get(destinationEndpoint, destinationAccountKey, destinationDatabaseName, destinationContainerName, destClient , cancellationToken).NoSync();
 
         // Ensure destination container exists (in case CopyContainer is called directly)
         ContainerResponse sourceContainerResponse = await sourceContainer.ReadContainerAsync(cancellationToken: cancellationToken).NoSync();
@@ -145,21 +146,6 @@ public sealed class CosmosCopyUtil : ICosmosCopyUtil
         TimeSpan duration = DateTimeOffset.UtcNow - startedAt;
         _logger.LogInformation("Completed CopyContainer to {destDb}/{destContainer}. Total items copied: {copied}. Duration: {duration}",
             destinationDatabaseName, destinationContainerName, copied, duration);
-    }
-
-    private async ValueTask DeleteAllContainers(Microsoft.Azure.Cosmos.Database destinationDatabase, CancellationToken cancellationToken)
-    {
-        FeedIterator<ContainerProperties>? destIterator = destinationDatabase.GetContainerQueryIterator<ContainerProperties>();
-        while (destIterator.HasMoreResults)
-        {
-            foreach (ContainerProperties props in await destIterator.ReadNextAsync(cancellationToken).NoSync())
-            {
-                _logger.LogWarning("Deleting destination container {container} ...", props.Id);
-                Microsoft.Azure.Cosmos.Container container = destinationDatabase.GetContainer(props.Id);
-                await container.DeleteContainerAsync(cancellationToken: cancellationToken).NoSync();
-                _logger.LogInformation("Deleted destination container {container}", props.Id);
-            }
-        }
     }
 
     private static string? NormalizePartitionKeyPath(string? path)

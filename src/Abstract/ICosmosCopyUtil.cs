@@ -15,9 +15,11 @@ public interface ICosmosCopyUtil
     /// Optionally filters items by createdAt >= cutoffUtc.
     /// </summary>
     ValueTask CopyDatabase(
-        string sourceConnectionString,
+        string sourceEndpoint,
+        string sourceAccountKey,
         string sourceDatabaseName,
-        string destinationConnectionString,
+        string destinationEndpoint,
+        string destinationAccountKey,
         string destinationDatabaseName,
         DateTime? cutoffUtc = null,
         CancellationToken cancellationToken = default);
@@ -27,10 +29,12 @@ public interface ICosmosCopyUtil
     /// Containers are created in the destination if they do not exist.
     /// </summary>
     ValueTask CopyContainer(
-        string sourceConnectionString,
+        string sourceEndpoint,
+        string sourceAccountKey,
         string sourceDatabaseName,
         string sourceContainerName,
-        string destinationConnectionString,
+        string destinationEndpoint,
+        string destinationAccountKey,
         string destinationDatabaseName,
         string destinationContainerName,
         DateTime? cutoffUtc = null,
