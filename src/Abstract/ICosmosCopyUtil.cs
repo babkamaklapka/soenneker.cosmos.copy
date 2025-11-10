@@ -14,29 +14,14 @@ public interface ICosmosCopyUtil
     /// Prior to copying, all existing containers in the destination database are deleted, then recreated to match the source.
     /// Optionally filters items by createdAt >= cutoffUtc.
     /// </summary>
-    ValueTask CopyDatabase(
-        string sourceEndpoint,
-        string sourceAccountKey,
-        string sourceDatabaseName,
-        string destinationEndpoint,
-        string destinationAccountKey,
-        string destinationDatabaseName,
-        DateTime? cutoffUtc = null,
-        CancellationToken cancellationToken = default);
+    ValueTask CopyDatabase(string sourceEndpoint, string sourceAccountKey, string sourceDatabaseName, string destinationEndpoint, string destinationAccountKey,
+        string destinationDatabaseName, DateTime? cutoffUtc = null, int numTasks = 50, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Copies items from a source container to a destination container. Optionally filters items by createdAt >= cutoffUtc.
     /// Containers are created in the destination if they do not exist.
     /// </summary>
-    ValueTask CopyContainer(
-        string sourceEndpoint,
-        string sourceAccountKey,
-        string sourceDatabaseName,
-        string sourceContainerName,
-        string destinationEndpoint,
-        string destinationAccountKey,
-        string destinationDatabaseName,
-        string destinationContainerName,
-        DateTime? cutoffUtc = null,
+    ValueTask CopyContainer(string sourceEndpoint, string sourceAccountKey, string sourceDatabaseName, string sourceContainerName, string destinationEndpoint,
+        string destinationAccountKey, string destinationDatabaseName, string destinationContainerName, DateTime? cutoffUtc = null, int numTasks = 50,
         CancellationToken cancellationToken = default);
 }

@@ -30,7 +30,7 @@ public sealed class CosmosCopyUtil : ICosmosCopyUtil
     }
 
     public async ValueTask CopyDatabase(string sourceEndpoint, string sourceAccountKey, string sourceDatabaseName, string destinationEndpoint,
-        string destinationAccountKey, string destinationDatabaseName, DateTime? cutoffUtc = null, CancellationToken cancellationToken = default)
+        string destinationAccountKey, string destinationDatabaseName, DateTime? cutoffUtc = null, int numTasks = 50, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Starting CopyDatabase from {sourceDb} to {destDb}. Cutoff: {cutoff}", sourceDatabaseName, destinationDatabaseName, cutoffUtc);
 
@@ -47,7 +47,7 @@ public sealed class CosmosCopyUtil : ICosmosCopyUtil
         foreach (ContainerProperties props in sourceContainers)
         {
             await CopyContainer(sourceEndpoint, sourceAccountKey, sourceDatabaseName, props.Id, destinationEndpoint, destinationAccountKey,
-                    destinationDatabaseName, props.Id, cutoffUtc, cancellationToken)
+                    destinationDatabaseName, props.Id, cutoffUtc, numTasks, cancellationToken)
                 .NoSync();
         }
 
@@ -55,7 +55,7 @@ public sealed class CosmosCopyUtil : ICosmosCopyUtil
     }
 
     public async ValueTask CopyContainer(string sourceEndpoint, string sourceAccountKey, string sourceDatabaseName, string sourceContainerName,
-        string destinationEndpoint, string destinationAccountKey, string destinationDatabaseName, string destinationContainerName, DateTime? cutoffUtc = null,
+        string destinationEndpoint, string destinationAccountKey, string destinationDatabaseName, string destinationContainerName, DateTime? cutoffUtc = null, int numTasks = 50,
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Starting CopyContainer from {sourceDb}/{sourceContainer} to {destDb}/{destContainer}. Cutoff: {cutoff}", sourceDatabaseName,
@@ -115,7 +115,7 @@ public sealed class CosmosCopyUtil : ICosmosCopyUtil
                 // Let SDK infer the partition key from the document
                 tasks.Add(destContainer.UpsertItemAsync(doc, cancellationToken: cancellationToken));
 
-                if (tasks.Count >= 100)
+                if (tasks.Count >= numTasks)
                 {
                     await Task.WhenAll(tasks)
                               .NoSync();
