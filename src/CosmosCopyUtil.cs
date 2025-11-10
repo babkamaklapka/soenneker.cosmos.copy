@@ -68,7 +68,7 @@ public sealed class CosmosCopyUtil : ICosmosCopyUtil
                                                                  .NoSync();
 
         ContainerResponse? containerResponse = await _containerSetupUtil
-                                                     .Ensure(destinationDatabaseName, destinationAccountKey, destinationDatabaseName, destinationContainerName,
+                                                     .Ensure(destinationEndpoint, destinationAccountKey, destinationDatabaseName, destinationContainerName,
                                                          cancellationToken)
                                                      .NoSync();
 
