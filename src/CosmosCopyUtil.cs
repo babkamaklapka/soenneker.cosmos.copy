@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using Soenneker.Cosmos.Copy.Abstract;
 using Soenneker.Cosmos.Container.Abstract;
 using Soenneker.Cosmos.Container.Setup.Abstract;
-using Soenneker.Cosmos.Database.Abstract;
 using Soenneker.Extensions.Task;
 using Soenneker.Extensions.ValueTask;
 using Soenneker.Extensions.String;
@@ -19,15 +18,13 @@ namespace Soenneker.Cosmos.Copy;
 public sealed class CosmosCopyUtil : ICosmosCopyUtil
 {
     private readonly ILogger<CosmosCopyUtil> _logger;
-    private readonly ICosmosDatabaseUtil _databaseUtil;
     private readonly ICosmosContainerUtil _containerUtil;
     private readonly ICosmosContainerSetupUtil _containerSetupUtil;
 
-    public CosmosCopyUtil(ILogger<CosmosCopyUtil> logger, ICosmosDatabaseUtil databaseUtil, ICosmosContainerUtil containerUtil,
+    public CosmosCopyUtil(ILogger<CosmosCopyUtil> logger, ICosmosContainerUtil containerUtil,
         ICosmosContainerSetupUtil containerSetupUtil)
     {
         _logger = logger;
-        _databaseUtil = databaseUtil;
         _containerUtil = containerUtil;
         _containerSetupUtil = containerSetupUtil;
     }
