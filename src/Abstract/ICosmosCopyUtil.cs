@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,9 +14,10 @@ public interface ICosmosCopyUtil
     /// Copies all containers and their items from a source database to a destination database.
     /// Prior to copying, all existing containers in the destination database are deleted, then recreated to match the source.
     /// Optionally filters items by createdAt >= cutoffUtc.
+    /// Optionally excludes specific containers from being copied.
     /// </summary>
     ValueTask CopyDatabase(string sourceEndpoint, string sourceAccountKey, string sourceDatabaseName, string destinationEndpoint, string destinationAccountKey,
-        string destinationDatabaseName, DateTime? cutoffUtc = null, int numTasks = 50, CancellationToken cancellationToken = default);
+        string destinationDatabaseName, DateTime? cutoffUtc = null, int numTasks = 50, IEnumerable<string>? excludedContainerNames = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Copies items from a source container to a destination container. Optionally filters items by createdAt >= cutoffUtc.

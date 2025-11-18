@@ -30,9 +30,16 @@ public sealed class CosmosCopyUtil : ICosmosCopyUtil
     }
 
     public async ValueTask CopyDatabase(string sourceEndpoint, string sourceAccountKey, string sourceDatabaseName, string destinationEndpoint,
-        string destinationAccountKey, string destinationDatabaseName, DateTime? cutoffUtc = null, int numTasks = 50, CancellationToken cancellationToken = default)
+        string destinationAccountKey, string destinationDatabaseName, DateTime? cutoffUtc = null, int numTasks = 50, IEnumerable<string>? excludedContainerNames = null, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Starting CopyDatabase from {sourceDb} to {destDb}. Cutoff: {cutoff}", sourceDatabaseName, destinationDatabaseName, cutoffUtc);
+
+        HashSet<string>? excludedSet = excludedContainerNames != null ? new HashSet<string>(excludedContainerNames, StringComparer.OrdinalIgnoreCase) : null;
+        
+        if (excludedSet != null && excludedSet.Count > 0)
+        {
+            _logger.LogInformation("Excluding {count} container(s) from copy: {containers}", excludedSet.Count, string.Join(", ", excludedSet));
+        }
 
         await _containerUtil.DeleteAll(destinationEndpoint, destinationAccountKey, destinationDatabaseName, cancellationToken)
                             .NoSync();
@@ -46,6 +53,12 @@ public sealed class CosmosCopyUtil : ICosmosCopyUtil
 
         foreach (ContainerProperties props in sourceContainers)
         {
+            if (excludedSet != null && excludedSet.Contains(props.Id))
+            {
+                _logger.LogInformation("Skipping excluded container: {container}", props.Id);
+                continue;
+            }
+
             await CopyContainer(sourceEndpoint, sourceAccountKey, sourceDatabaseName, props.Id, destinationEndpoint, destinationAccountKey,
                     destinationDatabaseName, props.Id, cutoffUtc, numTasks, cancellationToken)
                 .NoSync();
