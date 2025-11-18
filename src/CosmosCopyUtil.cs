@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using Soenneker.Cosmos.Copy.Abstract;
+using Soenneker.Cosmos.Copy.Dtos;
 using Soenneker.Cosmos.Container.Abstract;
 using Soenneker.Cosmos.Container.Setup.Abstract;
 using Soenneker.Extensions.Task;
@@ -30,15 +32,32 @@ public sealed class CosmosCopyUtil : ICosmosCopyUtil
     }
 
     public async ValueTask CopyDatabase(string sourceEndpoint, string sourceAccountKey, string sourceDatabaseName, string destinationEndpoint,
-        string destinationAccountKey, string destinationDatabaseName, DateTime? cutoffUtc = null, int numTasks = 50, IEnumerable<string>? excludedContainerNames = null, CancellationToken cancellationToken = default)
+        string destinationAccountKey, string destinationDatabaseName, DateTime? cutoffUtc = null, int numTasks = 50, IEnumerable<ContainerCopyConfig>? containerConfigs = null, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Starting CopyDatabase from {sourceDb} to {destDb}. Cutoff: {cutoff}", sourceDatabaseName, destinationDatabaseName, cutoffUtc);
+        _logger.LogInformation("Starting CopyDatabase from {sourceDb} to {destDb}. Global cutoff: {cutoff}", sourceDatabaseName, destinationDatabaseName, cutoffUtc);
 
-        HashSet<string>? excludedSet = excludedContainerNames != null ? new HashSet<string>(excludedContainerNames, StringComparer.OrdinalIgnoreCase) : null;
-        
-        if (excludedSet != null && excludedSet.Count > 0)
+        // Build a dictionary for quick lookup of container configurations (case-insensitive)
+        Dictionary<string, ContainerCopyConfig>? configDict = null;
+        if (containerConfigs != null)
         {
-            _logger.LogInformation("Excluding {count} container(s) from copy: {containers}", excludedSet.Count, string.Join(", ", excludedSet));
+            configDict = containerConfigs.ToDictionary(
+                c => c.ContainerName,
+                c => c,
+                StringComparer.OrdinalIgnoreCase);
+
+            var excluded = configDict.Values.Where(c => c.Exclude).ToList();
+            if (excluded.Count > 0)
+            {
+                _logger.LogInformation("Excluding {count} container(s) from copy: {containers}", 
+                    excluded.Count, string.Join(", ", excluded.Select(c => c.ContainerName)));
+            }
+
+            var withCustomCutoff = configDict.Values.Where(c => !c.Exclude && c.CutoffUtc.HasValue).ToList();
+            if (withCustomCutoff.Count > 0)
+            {
+                _logger.LogInformation("Containers with custom cutoff times: {containers}", 
+                    string.Join(", ", withCustomCutoff.Select(c => $"{c.ContainerName} (cutoff: {c.CutoffUtc})")));
+            }
         }
 
         await _containerUtil.DeleteAll(destinationEndpoint, destinationAccountKey, destinationDatabaseName, cancellationToken)
@@ -53,15 +72,28 @@ public sealed class CosmosCopyUtil : ICosmosCopyUtil
 
         foreach (ContainerProperties props in sourceContainers)
         {
-            if (excludedSet != null && excludedSet.Contains(props.Id))
+            // Check if container has specific configuration
+            if (configDict != null && configDict.TryGetValue(props.Id, out ContainerCopyConfig? config))
             {
-                _logger.LogInformation("Skipping excluded container: {container}", props.Id);
-                continue;
-            }
+                if (config.Exclude)
+                {
+                    _logger.LogInformation("Skipping excluded container: {container}", props.Id);
+                    continue;
+                }
 
-            await CopyContainer(sourceEndpoint, sourceAccountKey, sourceDatabaseName, props.Id, destinationEndpoint, destinationAccountKey,
-                    destinationDatabaseName, props.Id, cutoffUtc, numTasks, cancellationToken)
-                .NoSync();
+                // Use container-specific cutoff if provided, otherwise fall back to global cutoff
+                DateTime? containerCutoff = config.CutoffUtc ?? cutoffUtc;
+                await CopyContainer(sourceEndpoint, sourceAccountKey, sourceDatabaseName, props.Id, destinationEndpoint, destinationAccountKey,
+                        destinationDatabaseName, props.Id, containerCutoff, numTasks, cancellationToken)
+                    .NoSync();
+            }
+            else
+            {
+                // No specific config, use global cutoff
+                await CopyContainer(sourceEndpoint, sourceAccountKey, sourceDatabaseName, props.Id, destinationEndpoint, destinationAccountKey,
+                        destinationDatabaseName, props.Id, cutoffUtc, numTasks, cancellationToken)
+                    .NoSync();
+            }
         }
 
         _logger.LogInformation("Completed CopyDatabase from {sourceDb} to {destDb}", sourceDatabaseName, destinationDatabaseName);
